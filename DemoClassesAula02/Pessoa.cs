@@ -31,4 +31,8 @@ public class Pessoa
         this.idade = idade;
     }
 
+    //overload default constructor.
+    public Pessoa(string nome) : this(nome, 0)//calls default constructor
+    { }
+
 }
