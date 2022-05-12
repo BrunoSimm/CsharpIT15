@@ -97,5 +97,3 @@ if (canConvert == true)
     Console.WriteLine("number3 now = {0}", number3);
 else
     Console.WriteLine("number3 is not a valid decimal");
-
-
