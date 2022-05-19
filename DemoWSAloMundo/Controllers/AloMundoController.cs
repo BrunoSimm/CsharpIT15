@@ -41,4 +41,10 @@ public class AloMundoController : ControllerBase
     {
         return $"Olá, {nome}!";
     }
+
+    [HttpPost("pessoa")]
+    public string PostPessoa([FromBody] Pessoa pessoa)
+    {
+        return $"Olá, {pessoa.Nome} {pessoa.Idade} {pessoa.Email}!";
+    }
 }
