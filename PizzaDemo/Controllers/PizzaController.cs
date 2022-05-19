@@ -21,7 +21,7 @@ public class PizzaController : ControllerBase
         return PizzasServices.GetAll();
     }
 
-    [HttpGet("byid/{id}")] //.../pizza/1
+    [HttpGet("{id}")] //.../pizza/1
     [ProducesResponseType(200)]
     [ProducesResponseType(404)]
     public ActionResult<Pizza> GetById(int id)

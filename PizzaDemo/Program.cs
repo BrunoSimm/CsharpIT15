@@ -27,7 +27,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseCors("PermiteTudo");
+app.UseCors();
 
 app.UseAuthorization();
 
