@@ -8,12 +8,14 @@ namespace Lab11.Controllers;
 [Route("api/[controller]")]
 public class BibliotecaController : ControllerBase
 {
+    private readonly ILogger<BibliotecaController> _logger;
     private readonly IRepositoryAutores repositoryAutores;
     private readonly IRepositoryEmprestimos repositoryEmprestimos;
     private readonly IRepositoryLivros repositoryLivros;
 
-    public BibliotecaController(IRepositoryAutores repositoryAutores, IRepositoryEmprestimos repositoryEmprestimos, IRepositoryLivros repositoryLivros)
+    public BibliotecaController(ILogger<BibliotecaController> logger, IRepositoryAutores repositoryAutores, IRepositoryEmprestimos repositoryEmprestimos, IRepositoryLivros repositoryLivros)
     {
+        _logger = logger;
         this.repositoryAutores = repositoryAutores;
         this.repositoryEmprestimos = repositoryEmprestimos;
         this.repositoryLivros = repositoryLivros;
@@ -25,7 +27,7 @@ public class BibliotecaController : ControllerBase
         var autor = await repositoryAutores.GetById(autorId);
         if (autor is null)
         {
-            return NotFound();
+            return NotFound($"Autor {autorId} não encontrado.");
         }
 
         AutorLivrosEmprestimosDTO autorLivrosEmprestimosDTO = new AutorLivrosEmprestimosDTO(autor.PrimeiroNome, autor.UltimoNome);
@@ -55,7 +57,7 @@ public class BibliotecaController : ControllerBase
         return autorLivrosEmprestimosDTO;
     }
 
-    [HttpPost("livros/{livroId}/emprestar")]
+    [HttpPost("emprestimos")] //api/biblioteca/emprestimos?livroId=12
     public async Task<ActionResult<EmprestimoDTO>> EmprestarLivro(int livroId)
     {
         Livro? livro = await repositoryLivros.GetById(livroId);
@@ -71,13 +73,32 @@ public class BibliotecaController : ControllerBase
             }
             else
             {
-                return BadRequest($"Livro não está disponível para emprestimo. Data da devolução: {emprestimo.DataDevolucao}");
+                return BadRequest($"Livro não está disponível para emprestimo. Data da devolução esperada: {emprestimo.DataDevolucao}");
             }
         }
-        return NotFound("Livro não encontrado.");
+        return NotFound($"Livro {livroId} não encontrado.");
     }
 
-
-
-
+    [HttpPut("emprestimos/{emprestimoId}")] // /api/biblioteca/emprestimos/22
+    public async Task<ActionResult<EmprestimoDTO>> DevolverLivro(int emprestimoId)
+    {
+        Emprestimo? emprestimo = await repositoryEmprestimos.GetByIdAsync(emprestimoId);
+        if (emprestimo is not null)
+        {
+            if (emprestimo.Entregue == true)
+            {
+                return BadRequest($"Emprestimo {emprestimoId} já devolvido.");
+            }
+            double multa = 0;
+            if (DateTime.Now > emprestimo.DataDevolucao)
+            {
+                multa = (DateTime.Now - emprestimo.DataDevolucao).Days * 2.50;
+            }
+            emprestimo.DataDevolucao = DateTime.Now;
+            emprestimo.Entregue = true;
+            await repositoryEmprestimos.UpdateAsync(emprestimo);
+            return new EmprestimoDTO() { DataDevolucao = emprestimo.DataDevolucao, DataRetirada = emprestimo.DataRetirada, Multa = multa, TituloLivro = emprestimo.Livro.Titulo };
+        }
+        return NotFound($"Emprestimo {emprestimoId} não encontrado.");
+    }
 }

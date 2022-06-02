@@ -16,7 +16,7 @@ public class RepositoryEmprestimos : IRepositoryEmprestimos
 
     public async Task<Emprestimo?> GetByIdAsync(int id)
     {
-        return await _context.Emprestimos.FindAsync(id);
+        return await _context.Emprestimos.Include(emp => emp.Livro).Where(emp => emp.Id == id).FirstOrDefaultAsync();
     }
     public async Task CreateAsync(Emprestimo emprestimo)
     {
@@ -36,6 +36,6 @@ public class RepositoryEmprestimos : IRepositoryEmprestimos
 
     public async Task<Emprestimo?> GetEmprestimoAtualByLivroId(int id)
     {
-        return await _context.Emprestimos.Where(emp => emp.Livro.Id == id).Where(emp => emp.Entregue == false).FirstOrDefaultAsync();
+        return await _context.Emprestimos.Where(emp => emp.Livro.Id == id && emp.Entregue == false).FirstOrDefaultAsync();
     }
 }
