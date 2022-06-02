@@ -19,10 +19,10 @@ public class BibliotecaController : ControllerBase
         this.repositoryLivros = repositoryLivros;
     }
 
-    [HttpGet("livros/autor/{id}")]
-    public async Task<ActionResult<AutorLivrosEmprestimosDTO>> ConsultarLivros(int id)
+    [HttpGet("livros/autor/{autorId}")]
+    public async Task<ActionResult<AutorLivrosEmprestimosDTO>> ConsultarLivros(int autorId)
     {
-        var autor = await repositoryAutores.GetById(id);
+        var autor = await repositoryAutores.GetById(autorId);
         if (autor is null)
         {
             return NotFound();
@@ -55,10 +55,27 @@ public class BibliotecaController : ControllerBase
         return autorLivrosEmprestimosDTO;
     }
 
-    // public async Task<ActionResult<Emprestimo>> EmprestarLivro()
-    // {
-
-    // }
+    [HttpPost("livros/{livroId}/emprestar")]
+    public async Task<ActionResult<EmprestimoDTO>> EmprestarLivro(int livroId)
+    {
+        Livro? livro = await repositoryLivros.GetById(livroId);
+        if (livro is not null)
+        {
+            Emprestimo? emprestimo = await repositoryEmprestimos.GetEmprestimoAtualByLivroId(livro.Id);
+            if (emprestimo is null)
+            {
+                Emprestimo novoEmprestimo = new Emprestimo() { DataRetirada = DateTime.Now, DataDevolucao = DateTime.Now.AddDays(7), Entregue = false, Livro = livro };
+                await repositoryEmprestimos.CreateAsync(novoEmprestimo);
+                EmprestimoDTO emprestimoDTO = new EmprestimoDTO() { DataDevolucao = novoEmprestimo.DataDevolucao, DataRetirada = novoEmprestimo.DataRetirada, TituloLivro = novoEmprestimo.Livro.Titulo };
+                return emprestimoDTO;
+            }
+            else
+            {
+                return BadRequest($"Livro não está disponível para emprestimo. Data da devolução: {emprestimo.DataDevolucao}");
+            }
+        }
+        return NotFound("Livro não encontrado.");
+    }
 
 
 

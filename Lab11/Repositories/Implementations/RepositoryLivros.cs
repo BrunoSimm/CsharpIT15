@@ -30,6 +30,6 @@ public class RepositoryLivros : IRepositoryLivros
 
     public async Task<Livro?> GetById(int id)
     {
-        return await _context.Livros.FindAsync(id);
+        return await _context.Livros.Include(l => l.Emprestimos).Where(l => l.Id == id).FirstOrDefaultAsync();
     }
 }

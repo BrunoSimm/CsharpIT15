@@ -33,4 +33,9 @@ public class RepositoryEmprestimos : IRepositoryEmprestimos
     {
         return await _context.Emprestimos.Where(emp => emp.Livro.Id == id).ToListAsync();
     }
+
+    public async Task<Emprestimo?> GetEmprestimoAtualByLivroId(int id)
+    {
+        return await _context.Emprestimos.Where(emp => emp.Livro.Id == id).Where(emp => emp.Entregue == false).FirstOrDefaultAsync();
+    }
 }
