@@ -28,8 +28,20 @@ public class RepositoryLivros : IRepositoryLivros
         await _context.SaveChangesAsync();
     }
 
-    public async Task<Livro?> GetById(int id)
+    public IQueryable<Livro> GetById(int id)
     {
-        return await _context.Livros.Include(l => l.Emprestimos).Where(l => l.Id == id).FirstOrDefaultAsync();
+        return _context.Livros.Where(l => l.Id == id);
+    }
+
+    public async Task UpdateAsync(Livro livro)
+    {
+        _context.Livros.Update(livro);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteAsync(Livro livro)
+    {
+        _context.Livros.Remove(livro);
+        await _context.SaveChangesAsync();
     }
 }

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Lab11.Repositories;
 using Lab11.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Lab11.Controllers;
 
@@ -21,46 +22,10 @@ public class BibliotecaController : ControllerBase
         this.repositoryLivros = repositoryLivros;
     }
 
-    [HttpGet("livros/autor/{autorId}")]
-    public async Task<ActionResult<AutorLivrosEmprestimosDTO>> ConsultarLivros(int autorId)
-    {
-        var autor = await repositoryAutores.GetById(autorId);
-        if (autor is null)
-        {
-            return NotFound($"Autor {autorId} não encontrado.");
-        }
-
-        AutorLivrosEmprestimosDTO autorLivrosEmprestimosDTO = new AutorLivrosEmprestimosDTO(autor.PrimeiroNome, autor.UltimoNome);
-
-        if (autor.Livros is not null)
-        {
-            foreach (Livro livro in autor.Livros)
-            {
-                List<Emprestimo>? emprestimos = await repositoryEmprestimos.GetByLivroId(livro.Id);
-                if (emprestimos is not null)
-                {
-                    foreach (Emprestimo emprestimo in emprestimos)
-                    {
-                        if (emprestimo.Entregue == false)
-                        { //Indisponível
-                            autorLivrosEmprestimosDTO.AddListEmprestimo(livro, emprestimo.Entregue, emprestimo.DataDevolucao);
-                        }
-                        else
-                        { //Disponível
-                            autorLivrosEmprestimosDTO.AddListEmprestimo(livro, emprestimo.Entregue, null);
-                        }
-                    }
-                }
-
-            }
-        }
-        return autorLivrosEmprestimosDTO;
-    }
-
     [HttpPost("emprestimos")] //api/biblioteca/emprestimos?livroId=12
     public async Task<ActionResult<EmprestimoDTO>> EmprestarLivro(int livroId)
     {
-        Livro? livro = await repositoryLivros.GetById(livroId);
+        Livro? livro = await repositoryLivros.GetById(livroId).FirstOrDefaultAsync();
         if (livro is not null)
         {
             Emprestimo? emprestimo = await repositoryEmprestimos.GetEmprestimoAtualByLivroId(livro.Id);
@@ -101,4 +66,6 @@ public class BibliotecaController : ControllerBase
         }
         return NotFound($"Emprestimo {emprestimoId} não encontrado.");
     }
+
+
 }
